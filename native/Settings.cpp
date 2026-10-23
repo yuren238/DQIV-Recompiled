@@ -25,7 +25,7 @@ void loadSettings() {
         const auto key=line.substr(0,equals);
         int value=0;
         try {value=std::stoi(line.substr(equals+1));} catch(...) {continue;}
-        if(key=="language")s.language=std::clamp(value,0,5);
+        if(key=="language")s.language=std::clamp(value,0,7);
         else if(key=="showFps")s.showFps=value!=0;
         else if(key=="fullscreen")s.fullscreen=value!=0;
         else if(key=="windowSize")s.windowSize=std::clamp(value,0,windowSizeCount-1);
@@ -139,9 +139,96 @@ const char* japanese(const char* en) {
     const auto found=texts.find(en);
     return found!=texts.end()?found->second:en;
 }
-// Texts per game language: Japanese, English, French, German, Italian, Spanish.
+// Chinese texts, keyed by the English text. The panel is drawn with the game's
+// own font, so every character used here also has to be in the rebuilt glyph
+// tables (tools/build_cn_font.py collects them from this file).
+const char* chinese(const char* en,bool traditional) {
+    struct Entry {const char* en;const char* hans;const char* hant;};
+    static const Entry texts[]={
+        {"Settings","设置","設定"},
+        {"Keyboard","键盘","鍵盤"},
+        {"Gamepad","手柄","手把"},
+        {"Display","显示","顯示"},
+        {"Game","游戏","遊戲"},
+        {"A (confirm)","A（确定）","A（確定）"},
+        {"B (cancel)","B（取消）","B（取消）"},
+        {"X (menu)","X（菜单）","X（選單）"},
+        {"Party chat","同伴对话","同伴對話"},
+        {"Up","上","上"},
+        {"Down","下","下"},
+        {"Left","左","左"},
+        {"Right","右","右"},
+        {"Press...","请按键…","請按鍵…"},
+        {"L/R: page","L/R：翻页","L/R：翻頁"},
+        {"Default controls","恢复默认按键","恢復預設按鍵"},
+        {"Back","返回","返回"},
+        {"Language","语言","語言"},
+        {"Japanese","日语","日語"},
+        {"Show FPS","显示帧率","顯示幀率"},
+        {"Full screen","全屏","全螢幕"},
+        {"Window size","窗口大小","視窗大小"},
+        {"Picture","画面比例","畫面比例"},
+        {"Battle display","战斗画面","戰鬥畫面"},
+        {"Battle zoom","战斗缩放","戰鬥縮放"},
+        {"Stretch picture","拉伸画面","拉伸畫面"},
+        {"Vertical sync","垂直同步","垂直同步"},
+        {"3D quality","3D 画质","3D 畫質"},
+        {"Smooth textures","平滑纹理","平滑貼圖"},
+        {"Volume","总音量","總音量"},
+        {"Text speed","文字速度","文字速度"},
+        {"Frame rate","帧率上限","影格率上限"},
+        {"Battle speed","战斗速度","戰鬥速度"},
+        {"Battle messages","战斗消息","戰鬥訊息"},
+        {"Camera zoom","镜头缩放","鏡頭縮放"},
+        {"HD sound","HD 音源","HD 音源"},
+        {"Yes","是","是"},
+        {"No","否","否"},
+        {"DS screens","DS 双屏","DS 雙螢幕"},
+        {"Large","放大","放大"},
+        {"Panorama","全景","全景"},
+        {"Auto","自动","自動"},
+        {"Slow","慢","慢"},
+        {"Fast","快","快"},
+        {"Instant","立即","立即"},
+        {"Normal","普通","普通"},
+        {"Very fast","很快","很快"},
+        {"Wait for a key","等待按键","等待按鍵"},
+        {"Unlimited","不限","不限"},
+        {"Mobile","手机版","手機版"},
+        {"Music","音乐","音樂"},
+        {"Sound effects","音效","音效"},
+        {"Language of the game's texts.","游戏文本的语言。","遊戲文本的語言。"},
+        {"Frames per second, top left.","左上角显示每秒帧数。","左上角顯示每秒幀數。"},
+        {"Size in windowed mode.","窗口模式下的尺寸。","視窗模式下的尺寸。"},
+        {"Panorama battles: the monsters seen closer.","全景战斗：怪物显示得更近。","全景戰鬥：怪物顯示得更近。"},
+        {"Large: monsters zoomed to fill the battle area; Panorama: the zoom below.","放大：怪物放大填满战斗区；全景：使用下方缩放。","放大：怪物放大填滿戰鬥區；全景：使用下方縮放。"},
+        {"16:9 fills the screen; DS screens keeps the original layout.","16:9 铺满屏幕；DS 双屏保持原布局。","16:9 鋪滿螢幕；DS 雙螢幕保持原佈局。"},
+        {"Fills the window instead of keeping proportions.","拉伸填满窗口，不保持比例。","拉伸填滿視窗，不保持比例。"},
+        {"Avoids tearing.","防止画面撕裂。","防止畫面撕裂。"},
+        {"3D supersampling; Auto adapts to the graphics card.","3D 超采样；自动会适配显卡。","3D 超取樣；自動會適配顯卡。"},
+        {"Smoothed 3D textures (No: the original DS pixels).","平滑 3D 纹理（否：保留 DS 原始像素）。","平滑 3D 貼圖（否：保留 DS 原始像素）。"},
+        {"Overall volume.","总音量。","總音量。"},
+        {"Music and sounds: smartphone recordings or the DS synthesizer.","音乐与音效：手机版录音或 DS 合成器。","音樂與音效：手機版錄音或 DS 合成器。"},
+        {"How fast dialogue text appears.","对话文字出现的速度。","對話文字出現的速度。"},
+    };
+    for(const auto& text:texts) {
+        if(std::string_view(text.en)==en)return traditional?text.hant:text.hans;
+    }
+    return en;
+}
+// Texts per game language: Japanese, English, French, German, Italian, Spanish,
+// then simplified and traditional Chinese.
 const char* pick(int language,const char* en,const char* fr,const char* de,const char* it,const char* es) {
-    switch(language) {case 0:return japanese(en);case 2:return fr;case 3:return de;case 4:return it;case 5:return es;default:return en;}
+    switch(language) {
+    case 0:return japanese(en);
+    case 2:return fr;
+    case 3:return de;
+    case 4:return it;
+    case 5:return es;
+    case 6:return chinese(en,false);
+    case 7:return chinese(en,true);
+    }
+    return en;
 }
 const char* yesNo(bool value,int language) {
     return value?pick(language,"Yes","Oui","Ja","Sì","Sí"):pick(language,"No","Non","Nein","No","No");
@@ -224,6 +311,9 @@ std::string settingValue(int item,int language) {
     switch(item) {
     case settingLanguage: {
         static const char* names[]={"","English","Français","Deutsch","Italiano","Español"};
+        // The Chinese texts come from the mobile port; the fonts are rebuilt with CJK glyphs.
+        if(s.language==6)return "简体中文";
+        if(s.language==7)return "繁體中文";
         // The menu font of the other languages has no kanji.
         if(s.language==0)return pick(language,"Japanese","Japonais","Japanisch","Giapponese","Japonés");
         return names[std::clamp(s.language,1,5)];
@@ -289,7 +379,7 @@ bool changeSetting(int item,int step) {
     auto& s=gameSettings();
     auto cycle=[&](int v,int low,int high){return v+step<low?high:v+step>high?low:v+step;};
     switch(item) {
-    case settingLanguage:s.language=cycle(s.language,0,5);return true;
+    case settingLanguage:s.language=cycle(s.language,0,7);return true;
     case settingFps:s.showFps=!s.showFps;return true;
     case settingMobileSound:s.mobileSound=!s.mobileSound;return true;
     case settingFullscreen:s.fullscreen=!s.fullscreen;return true;

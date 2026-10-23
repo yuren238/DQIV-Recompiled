@@ -124,6 +124,12 @@ ARM void GameApplication::vf00()
         case 5:
             setGameLanguage(Spanish);
             break;
+        case 6:
+            setGameLanguage(SimplifiedChinese);
+            break;
+        case 7:
+            setGameLanguage(TraditionalChinese);
+            break;
         default:
             setGameLanguage(English);
             break;

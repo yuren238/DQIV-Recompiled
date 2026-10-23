@@ -150,6 +150,8 @@ enum Language {
     German = 0x3,
     Italian = 0x4,
     Spanish = 0x5,
+    SimplifiedChinese = 0x6,
+    TraditionalChinese = 0x7,
 };
 
 enum TIME_ZONE

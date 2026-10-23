@@ -80,6 +80,12 @@ THUMB int MsgData::loadBlock(unsigned int msg_id, int lang)
         if (lang == 5) {
             dir = "ES";
         }
+        if (lang == 6) {
+            dir = "CN";
+        }
+        if (lang == 7) {
+            dir = "TW";
+        }
         if (m_block_size == 10000) {
             dss::sprintf(path, "data/MESS/%s/a%07d.mpt", dir, block);
         } else {

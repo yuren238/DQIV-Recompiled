@@ -702,8 +702,12 @@ void unkfunc_native_tabs(const char* const* names, int count, int active, int x,
         int param = (int)names[k];
         parts[0].w_ = widths[k];
         drawMenuParts(parts, &param, tabX, 0, k == active ? g_menuTextColors[1] : g_menuTextColors[0]);
-        // Japanese glyphs are taller than the frame's inside: names alone.
-        if (status::g_Game.language != Japanese) {
+        // The DS window art is 24px tall with 8px corner pieces, so its usable
+        // inside is one 8px band. Japanese and Chinese glyphs are 9px of ink in
+        // a 12px cell: a box drawn over them would cut their tops off. Those
+        // languages get the names alone, as the original game does.
+        if (status::g_Game.language != Japanese && status::g_Game.language != SimplifiedChinese &&
+            status::g_Game.language != TraditionalChinese) {
             frame(tabX, 0, widths[k], 0x18, -1);
         }
         tabX += widths[k];
